@@ -38,3 +38,10 @@ git clone https://github.com/tuusuario/bonos-backend.git
 cd bonos-backend
 ```
 
+## 2. Despliega el docker
+
+```bash
+docker compose up --build -d
+```
+
+
