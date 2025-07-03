@@ -16,13 +16,13 @@ CREATE TABLE configuracion (
 
 CREATE TABLE bono (
     id SERIAL PRIMARY KEY,
-    moneda VARCHAR NOT NULL,    
+    moneda VARCHAR(10) NOT NULL,    
     valor_nominal BIGINT NOT NULL,
     fecha_emision DATE NOT NULL,
     fecha_vencimiento DATE NOT NULL,
-    frecuencia_pago VARCHAR NOT NULL,
-    tipo_tasa VARCHAR,
-    valor_tasa INT NOT NULL,
+    frecuencia_pago VARCHAR(50) NOT NULL,
+    tipo_tasa VARCHAR(50),
+    valor_tasa FLOAT NOT NULL,
     capitalizacion INT,
     dias_base INT,
     prima_redencion INT,

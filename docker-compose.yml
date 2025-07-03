@@ -4,6 +4,7 @@ services:
   db:
     image: postgres:15
     restart: always
+    container_name: bonos_postgres
     environment:
       POSTGRES_USER: bonos_user
       POSTGRES_PASSWORD: bonos_pass
@@ -13,13 +14,38 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - bonos_network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: always
+    container_name: bonos_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - bonos_network
 
   web:
     build: .
+    container_name: bonos_web
     ports:
       - "8000:8000"
     depends_on:
       - db
+    networks:
+      - bonos_network
+    environment:
+      - DATABASE_URL=postgresql://bonos_user:bonos_pass@db:5432/bonos_db
 
 volumes:
   db_data:
+
+networks:
+  bonos_network:
+    driver: bridge
