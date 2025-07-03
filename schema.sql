@@ -16,6 +16,7 @@ CREATE TABLE configuracion (
 
 CREATE TABLE bono (
     id SERIAL PRIMARY KEY,
+    moneda VARCHAR NOT NULL,    
     valor_nominal BIGINT NOT NULL,
     fecha_emision DATE NOT NULL,
     fecha_vencimiento DATE NOT NULL,

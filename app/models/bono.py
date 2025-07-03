@@ -9,12 +9,12 @@ class Bono(Base):
 
     id = Column(Integer, primary_key=True)
     usuario_id = Column(Integer, ForeignKey("usuario.id"))
-    moneda = Column(String, nullable=False)
+    moneda = Column(String(10), nullable=False)  # Especifica longitud máxima
     valor_nominal = Column(BigInteger, nullable=False)
     fecha_emision = Column(Date, nullable=False)
     fecha_vencimiento = Column(Date, nullable=False)
-    frecuencia_pago = Column(String, nullable=False)
-    tipo_tasa = Column(String)
+    frecuencia_pago = Column(String(50), nullable=False)  # Especifica longitud
+    tipo_tasa = Column(String(50))  # Especifica longitud
     valor_tasa = Column(Float, nullable=False)
     capitalizacion = Column(Integer)
     dias_base = Column(Integer)
@@ -25,3 +25,6 @@ class Bono(Base):
     gracia_parcial_fin = Column(Integer)
     created_at = Column(Date, default=datetime.date.today)
     updated_at = Column(Date, default=datetime.date.today)
+    
+    # Relación con Usuario
+    usuario = relationship("Usuario", back_populates="bonos")

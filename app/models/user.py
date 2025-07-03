@@ -16,3 +16,6 @@ class Usuario(Base):
     
     # Relación con Configuracion (1:1)
     configuracion = relationship("Configuracion", back_populates="usuario", uselist=False)
+    
+    # Relación con Bonos (1:N)
+    bonos = relationship("Bono", back_populates="usuario")
