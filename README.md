@@ -44,4 +44,11 @@ cd bonos-backend
 docker compose up --build -d
 ```
 
+# OJO
+Si se hacen cambios en la base de datos como crear nuevas tablas o modificar se debe modificar en `schema.sql` pero no se veran reflejados porque se tiene que limpiar el volumen
+
+```bash
+docker-compose down -v  # OJO: borra datos
+docker-compose up --build
+```
 

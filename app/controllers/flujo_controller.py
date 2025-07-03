@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.bono import Bono
 from app.schemas.flujo import FlujoCajaResponse
+from app.models.flujo_caja import FlujoCaja
+from datetime import date
 
 
 def calcular_periodos(bono: Bono) -> int:
@@ -70,6 +72,18 @@ async def generar_flujos(bono_id: int, db: AsyncSession) -> list[FlujoCajaRespon
         if k == n and bono.prima_redencion:
             cuota += saldo * (bono.prima_redencion / 100)
 
+        db.add(
+            FlujoCaja(
+                numero_cuota=k,
+                fecha=fecha_pago,
+                amortizacion=int(round(amortizacion)),
+                interes=int(round(interes)),
+                cuota=int(round(cuota)),
+                saldo=int(round(saldo)),
+                bono_id=bono.id,
+            )
+        )
+
         flujos.append(
             FlujoCajaResponse(
                 numero_cuota=k,
@@ -81,4 +95,5 @@ async def generar_flujos(bono_id: int, db: AsyncSession) -> list[FlujoCajaRespon
             )
         )
 
+    await db.commit()
     return flujos
