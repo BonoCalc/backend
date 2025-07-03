@@ -9,6 +9,7 @@ class Bono(Base):
 
     id = Column(Integer, primary_key=True)
     usuario_id = Column(Integer, ForeignKey("usuario.id"))
+    moneda = Column(String, nullable=False)
     valor_nominal = Column(BigInteger, nullable=False)
     fecha_emision = Column(Date, nullable=False)
     fecha_vencimiento = Column(Date, nullable=False)

@@ -4,6 +4,7 @@ from typing import Optional
 
 
 class BonoCreate(BaseModel):
+    moneda: str
     valor_nominal: int
     fecha_emision: date
     fecha_vencimiento: date
@@ -21,6 +22,7 @@ class BonoCreate(BaseModel):
 
 class BonoResponse(BaseModel):
     id: int
+    moneda: str
     valor_nominal: int
     fecha_emision: date
     fecha_vencimiento: date

@@ -9,6 +9,7 @@ import datetime
 async def create_bono(data: BonoCreate, user_id: int, db: AsyncSession):
     bono = Bono(
         usuario_id=user_id,
+        moneda=data.moneda,
         valor_nominal=data.valor_nominal,
         fecha_emision=data.fecha_emision,
         fecha_vencimiento=data.fecha_vencimiento,
