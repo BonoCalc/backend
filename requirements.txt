@@ -8,3 +8,4 @@ openpyxl
 pydantic[email]
 passlib[bcrypt]
 python-jose
+numpy-financial

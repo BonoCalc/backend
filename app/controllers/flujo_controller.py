@@ -2,6 +2,7 @@ from datetime import timedelta
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import delete
 from app.models.bono import Bono
 from app.schemas.flujo import FlujoCajaResponse
 from app.models.flujo_caja import FlujoCaja
@@ -23,6 +24,8 @@ async def generar_flujos(bono_id: int, db: AsyncSession) -> list[FlujoCajaRespon
 
     if not bono:
         raise HTTPException(status_code=404, detail="Bono no encontrado")
+
+    await db.execute(delete(FlujoCaja).where(FlujoCaja.bono_id == bono.id))
 
     n = calcular_periodos(bono)
     p = {"anual": 1, "semestral": 2, "trimestral": 4, "mensual": 12}.get(
@@ -97,3 +100,27 @@ async def generar_flujos(bono_id: int, db: AsyncSession) -> list[FlujoCajaRespon
 
     await db.commit()
     return flujos
+
+
+async def obtener_flujos_guardados(
+    bono_id: int, db: AsyncSession
+) -> list[FlujoCajaResponse]:
+    stmt = (
+        select(FlujoCaja)
+        .where(FlujoCaja.bono_id == bono_id)
+        .order_by(FlujoCaja.numero_cuota)
+    )
+    result = await db.execute(stmt)
+    flujos = result.scalars().all()
+
+    return [
+        FlujoCajaResponse(
+            numero_cuota=f.numero_cuota,
+            fecha=f.fecha,
+            amortizacion=f.amortizacion,
+            interes=f.interes,
+            cuota=f.cuota,
+            saldo=f.saldo,
+        )
+        for f in flujos
+    ]
