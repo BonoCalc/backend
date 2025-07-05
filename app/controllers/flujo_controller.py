@@ -7,6 +7,7 @@ from app.models.bono import Bono
 from app.schemas.flujo import FlujoCajaResponse
 from app.models.flujo_caja import FlujoCaja
 from datetime import date
+from dateutil.relativedelta import relativedelta
 
 
 def calcular_periodos(bono: Bono) -> int:
@@ -17,7 +18,9 @@ def calcular_periodos(bono: Bono) -> int:
     return int(frecuencia * (dias / base))
 
 
-async def generar_flujos(bono_id: int, db: AsyncSession) -> list[FlujoCajaResponse]:
+async def generar_flujos(
+    bono_id: int, meses_entre_pagos: int, db: AsyncSession
+) -> list[FlujoCajaResponse]:
     stmt = select(Bono).where(Bono.id == bono_id)
     result = await db.execute(stmt)
     bono = result.scalar()
@@ -27,12 +30,17 @@ async def generar_flujos(bono_id: int, db: AsyncSession) -> list[FlujoCajaRespon
 
     await db.execute(delete(FlujoCaja).where(FlujoCaja.bono_id == bono.id))
 
-    n = calcular_periodos(bono)
-    p = {"anual": 1, "semestral": 2, "trimestral": 4, "mensual": 12}.get(
-        bono.frecuencia_pago.lower(), 1
-    )
+    # Calcular número de periodos
+    fecha_ini = bono.fecha_emision
+    fecha_fin = bono.fecha_vencimiento
+    n = 0
+    fecha = fecha_ini
+    while fecha < fecha_fin:
+        fecha += relativedelta(months=meses_entre_pagos)
+        n += 1
 
     # Calcular tasa por periodo
+    p = 12 / meses_entre_pagos  # pagos por año
     if bono.tipo_tasa.lower() == "efectiva":
         i = (1 + bono.valor_tasa / 100) ** (1 / p) - 1
     else:
@@ -49,7 +57,7 @@ async def generar_flujos(bono_id: int, db: AsyncSession) -> list[FlujoCajaRespon
     flujos = []
 
     for k in range(1, n + 1):
-        fecha_pago = bono.fecha_emision + timedelta(days=(k * 360 // p))
+        fecha_pago = bono.fecha_emision + relativedelta(months=k * meses_entre_pagos)
         en_gracia_total = (
             bono.gracia_total_inicio
             and bono.gracia_total_inicio <= k <= bono.gracia_total_fin
