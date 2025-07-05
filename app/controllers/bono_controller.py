@@ -1,7 +1,7 @@
 from app.models.bono import Bono
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.schemas.bono import BonoCreate
+from app.schemas.bono import BonoCreate, BonoUpdate
 from fastapi import HTTPException
 from app.schemas.bono import BonoResponse
 import datetime
@@ -44,4 +44,24 @@ async def get_bono_by_id(bono_id: int, user_id: int, db: AsyncSession) -> BonoRe
     bono = result.scalar()
     if not bono:
         raise HTTPException(status_code=404, detail="Bono no encontrado")
+    return BonoResponse(**bono.__dict__)
+
+
+async def update_bono(
+    bono_id: int, user_id: int, data: BonoUpdate, db: AsyncSession
+) -> BonoResponse:
+    result = await db.execute(
+        select(Bono).where(Bono.id == bono_id, Bono.usuario_id == user_id)
+    )
+    bono = result.scalar()
+
+    if not bono:
+        raise HTTPException(status_code=404, detail="Bono no encontrado")
+
+    # Solo actualiza campos presentes
+    for field, value in data.dict(exclude_unset=True).items():
+        setattr(bono, field, value)
+
+    await db.commit()
+    await db.refresh(bono)
     return BonoResponse(**bono.__dict__)

@@ -36,3 +36,20 @@ class BonoResponse(BaseModel):
     gracia_total_fin: Optional[int] = None
     gracia_parcial_inicio: Optional[int] = None
     gracia_parcial_fin: Optional[int] = None
+
+
+class BonoUpdate(BaseModel):
+    moneda: Optional[str] = None
+    valor_nominal: Optional[int] = None
+    fecha_emision: Optional[date] = None
+    fecha_vencimiento: Optional[date] = None
+    frecuencia_pago: Optional[str] = None
+    tipo_tasa: Optional[str] = None
+    valor_tasa: Optional[float] = None
+    capitalizacion: Optional[int] = None
+    dias_base: Optional[int] = None
+    prima_redencion: Optional[int] = None
+    gracia_total_inicio: Optional[int] = None
+    gracia_total_fin: Optional[int] = None
+    gracia_parcial_inicio: Optional[int] = None
+    gracia_parcial_fin: Optional[int] = None
