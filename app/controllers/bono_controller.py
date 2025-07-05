@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.schemas.bono import BonoCreate
 from fastapi import HTTPException
+from app.schemas.bono import BonoResponse
 import datetime
 
 
@@ -34,3 +35,13 @@ async def list_bonos(user_id: int, db: AsyncSession, limit: int = 10, offset: in
     stmt = select(Bono).where(Bono.usuario_id == user_id).limit(limit).offset(offset)
     result = await db.execute(stmt)
     return result.scalars().all()
+
+
+async def get_bono_by_id(bono_id: int, user_id: int, db: AsyncSession) -> BonoResponse:
+    result = await db.execute(
+        select(Bono).where(Bono.id == bono_id, Bono.usuario_id == user_id)
+    )
+    bono = result.scalar()
+    if not bono:
+        raise HTTPException(status_code=404, detail="Bono no encontrado")
+    return BonoResponse(**bono.__dict__)
