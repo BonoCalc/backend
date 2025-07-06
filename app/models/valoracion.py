@@ -10,6 +10,7 @@ class Valoracion(Base):
     id = Column(Integer, primary_key=True)    
     origen_valoracion = Column(String(10))  # "TASA" o "PRECIO"
     valor_base = Column(Float)    
+    fecha_valoracion = Column(Date, default=date.today)
     bono_id = Column(Integer, ForeignKey("bono.id"))
     
     # Agregar relación con Bono

@@ -38,6 +38,7 @@ async def save_valoracion_bono(
     valoracion = Valoracion(
         origen_valoracion=data.origen_valoracion,
         valor_base=data.valor_base,
+        fecha_valoracion=data.fecha_valoracion,
         bono_id=bono_id
     )
     db.add(valoracion)
@@ -60,6 +61,7 @@ async def get_valoracion_bono(
         id=valoracion.id,
         origen_valoracion=valoracion.origen_valoracion,
         valor_base=valoracion.valor_base,
+        fecha_valoracion=valoracion.fecha_valoracion,
         bono_id=valoracion.bono_id
     )
     
@@ -85,5 +87,6 @@ async def edit_valoracion_bono(
         id=valoracion.id,
         origen_valoracion=valoracion.origen_valoracion,
         valor_base=valoracion.valor_base,
+        fecha_valoracion=valoracion.fecha_valoracion,
         bono_id=valoracion.bono_id
     )

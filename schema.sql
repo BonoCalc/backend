@@ -50,6 +50,7 @@ CREATE TABLE valoraciones (
     id SERIAL PRIMARY KEY,    
     origen_valoracion VARCHAR(10),
     valor_base FLOAT,    
+    fecha_valoracion DATE DEFAULT CURRENT_DATE,
     bono_id INT REFERENCES bono(id)
 );
 
