@@ -1,9 +1,11 @@
 from app.models.bono import Bono
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import delete
 from app.schemas.bono import BonoCreate, BonoUpdate
 from fastapi import HTTPException
 from app.schemas.bono import BonoResponse
+from app.models.flujo_caja import FlujoCaja
 import datetime
 
 
@@ -62,6 +64,7 @@ async def update_bono(
     for field, value in data.dict(exclude_unset=True).items():
         setattr(bono, field, value)
 
+    await db.execute(delete(FlujoCaja).where(FlujoCaja.bono_id == bono.id))
     await db.commit()
     await db.refresh(bono)
     return BonoResponse(**bono.__dict__)

@@ -39,10 +39,10 @@ CREATE TABLE flujos_caja (
     id SERIAL PRIMARY KEY,
     numero_cuota INT,
     fecha DATE,
-    amortizacion INT,
-    interes INT,
-    cuota INT,
-    saldo INT,
+    amortizacion FLOAT,
+    interes FLOAT,
+    cuota FLOAT,
+    saldo FLOAT,
     bono_id INT REFERENCES bono(id)
 );
 

@@ -13,7 +13,7 @@ from dateutil.relativedelta import relativedelta
 def calcular_periodos(bono: Bono) -> int:
     dias = (bono.fecha_vencimiento - bono.fecha_emision).days
     base = bono.dias_base or 360
-    pagos_por_anio = {"anual": 1, "semestral": 2, "trimestral": 4, "mensual": 12}
+    pagos_por_anio = {"anual": 1, "semestral": 2, "trimestral": 4, "cuatrimestral": 3, "bimestral": 6, "mensual": 12}
     frecuencia = pagos_por_anio.get(bono.frecuencia_pago.lower(), 1)
     return int(frecuencia * (dias / base))
 
@@ -30,7 +30,6 @@ async def generar_flujos(
 
     await db.execute(delete(FlujoCaja).where(FlujoCaja.bono_id == bono.id))
 
-    # Calcular número de periodos
     fecha_ini = bono.fecha_emision
     fecha_fin = bono.fecha_vencimiento
     n = 0
@@ -39,25 +38,25 @@ async def generar_flujos(
         fecha += relativedelta(months=meses_entre_pagos)
         n += 1
 
-    # Calcular tasa por periodo
-    p = 12 / meses_entre_pagos  # pagos por año
+    p = 12 / meses_entre_pagos  
     if bono.tipo_tasa.lower() == "efectiva":
         i = (1 + bono.valor_tasa / 100) ** (1 / p) - 1
     else:
-        m = bono.capitalizacion or 1
         tna = bono.valor_tasa / 100
-        i = (1 + tna / m) ** (1 / m) - 1
+        i = tna / p
 
-    saldo = bono.valor_nominal
     amort = (
         bono.valor_nominal / (n - (bono.gracia_total_fin or 0))
         if n != (bono.gracia_total_fin or 0)
         else 0
     )
+    
+    saldo = bono.valor_nominal
     flujos = []
 
     for k in range(1, n + 1):
         fecha_pago = bono.fecha_emision + relativedelta(months=k * meses_entre_pagos)
+        
         en_gracia_total = (
             bono.gracia_total_inicio
             and bono.gracia_total_inicio <= k <= bono.gracia_total_fin
@@ -70,7 +69,7 @@ async def generar_flujos(
         if en_gracia_total:
             interes = 0
             amortizacion = 0
-            saldo *= 1 + i
+            saldo *= (1 + i)
         elif en_gracia_parcial:
             interes = saldo * i
             amortizacion = 0
@@ -80,6 +79,7 @@ async def generar_flujos(
             saldo -= amortizacion
 
         cuota = interes + amortizacion
+        
         if k == n and bono.prima_redencion:
             cuota += saldo * (bono.prima_redencion / 100)
 
@@ -87,14 +87,13 @@ async def generar_flujos(
             FlujoCaja(
                 numero_cuota=k,
                 fecha=fecha_pago,
-                amortizacion=int(round(amortizacion)),
-                interes=int(round(interes)),
-                cuota=int(round(cuota)),
-                saldo=int(round(saldo)),
+                amortizacion=round(amortizacion, 2),
+                interes=round(interes, 2),
+                cuota=round(cuota, 2),
+                saldo=round(saldo, 2),
                 bono_id=bono.id,
             )
         )
-
         flujos.append(
             FlujoCajaResponse(
                 numero_cuota=k,
