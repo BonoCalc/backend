@@ -28,3 +28,6 @@ class Bono(Base):
     
     # Relación con Usuario
     usuario = relationship("Usuario", back_populates="bonos")
+    
+    # Agregar relación con Valoraciones
+    valoraciones = relationship("Valoracion", back_populates="bono")

@@ -25,7 +25,7 @@ CREATE TABLE bono (
     valor_tasa FLOAT NOT NULL,
     capitalizacion INT,
     dias_base INT,
-    prima_redencion INT,
+    prima_redencion FLOAT,
     gracia_total_inicio INT,
     gracia_total_fin INT,
     gracia_parcial_inicio INT,
