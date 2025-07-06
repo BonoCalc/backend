@@ -47,18 +47,9 @@ CREATE TABLE flujos_caja (
 );
 
 CREATE TABLE valoraciones (
-    id SERIAL PRIMARY KEY,
-    fecha_valoracion DATE DEFAULT CURRENT_DATE,
-    tcea FLOAT,
-    trea FLOAT,
-    duracion FLOAT,
-    duracion_modificada FLOAT,
-    convexidad FLOAT,
-    precio_maximo FLOAT,
+    id SERIAL PRIMARY KEY,    
     origen_valoracion VARCHAR(10),
-    valor_base FLOAT,
-    precio_calculado FLOAT,
-    tir_calculada FLOAT,
+    valor_base FLOAT,    
     bono_id INT REFERENCES bono(id)
 );
 
