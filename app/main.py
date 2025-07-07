@@ -10,20 +10,22 @@ app = FastAPI()
 
 origins = [
     "http://localhost",
-    "http://localhost:4200",  
-    "https://tu-frontend.com",
+    "http://localhost:4200",
+    "https://frontend-gamma-topaz-77.vercel.app",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,           
-    allow_credentials=True,           
-    allow_methods=["*"],             
-    allow_headers=["*"],              
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(user_router, prefix="/auth", tags=["Auth"])
 app.include_router(bono_router, prefix="/bonos", tags=["Bonos"])
 app.include_router(flujo_router, prefix="/flujo", tags=["flujo"])
 app.include_router(valoracion_router, prefix="/valoraciones", tags=["valoraciones"])
-app.include_router(configuracion_router, prefix="/configuracion", tags=["Configuración"])
+app.include_router(
+    configuracion_router, prefix="/configuracion", tags=["Configuración"]
+)
