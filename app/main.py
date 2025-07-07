@@ -11,7 +11,7 @@ app = FastAPI()
 origins = [
     "http://localhost",
     "http://localhost:4200",
-    "https://frontend-gamma-topaz-77.vercel.app",
+    "https://bonocalc.vercel.app",
 ]
 
 app.add_middleware(
