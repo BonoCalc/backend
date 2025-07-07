@@ -23,36 +23,6 @@ def calcular_TIR(flujos: list[float]) -> float:
         raise ValueError("No se pudo calcular TIR con numpy-financial")
     return tir
 
-
-"""
-def calcular_TIR(flujos: list[float], max_iter=100, tol=1e-7) -> float:
-    a, b = 0.00001, 1.0  # rango típico de 0.001% a 100%
-    fa = sum(cf / (1 + a) ** i for i, cf in enumerate(flujos))
-    fb = sum(cf / (1 + b) ** i for i, cf in enumerate(flujos))
-
-    # 👇 Aquí va el print para depurar
-    print(f"🔍 Probando rango: a = {a}, b = {b}, NPV(a) = {fa}, NPV(b) = {fb}")
-
-    if fa * fb > 0:
-        raise ValueError("No se puede calcular TIR: mismo signo en extremos")
-
-    # Bisección
-    for _ in range(max_iter):
-        r = (a + b) / 2
-        fr = sum(cf / (1 + r) ** i for i, cf in enumerate(flujos))
-        if abs(fr) < tol:
-            return r
-        if fa * fr < 0:
-            b, fb = r, fr
-        else:
-            a, fa = r, fr
-
-    raise ValueError(
-        "No se pudo calcular TIR: no se encontró raíz en los rangos evaluados"
-    )
-"""
-
-
 async def valorar_bono(
     bono_id: int, data: ValoracionRequest, db: AsyncSession
 ) -> ValoracionResponse:
@@ -81,19 +51,19 @@ async def valorar_bono(
     print("Flujos inversionista:", flujos_inversionista)
 
     if data.origen_valoracion == "TASA":
-        tir_inversionista = tir_emisor = (1 + data.valor_base / 100) ** (
-            1 / len(flujos)
-        ) - 1
+        p = {"anual": 1, "semestral": 2, "trimestral": 4, "cuatrimestral": 3, "bimestral": 6, "mensual": 12}.get(
+            bono.frecuencia_pago.lower(), 1
+        )
+        tir_inversionista = tir_emisor = data.valor_base / 100 / p
         tir_calculada = None
         precio = bono.valor_nominal
     else:
         try:
             tir_inversionista = calcular_TIR(flujos_inversionista)
-            # Solo se calcula tir_emisor si hay cambio de signo en los flujos
             try:
                 tir_emisor = calcular_TIR(flujos_emisor)
             except Exception:
-                tir_emisor = tir_inversionista  # o None si prefieres
+                tir_emisor = tir_inversionista 
             tir_calculada = tir_inversionista
             precio = data.valor_base
         except Exception as e:
@@ -101,20 +71,20 @@ async def valorar_bono(
                 status_code=400, detail=f"No se pudo calcular la TIR: {str(e)}"
             )
 
-    p = {"anual": 1, "semestral": 2, "trimestral": 4, "mensual": 12}.get(
+    p = {"anual": 1, "semestral": 2, "trimestral": 4, "cuatrimestral": 3, "bimestral": 6, "mensual": 12}.get(
         bono.frecuencia_pago.lower(), 1
     )
     tcea = (1 + tir_emisor) ** p - 1
     trea = (1 + tir_inversionista) ** p - 1
 
     y = tir_inversionista
-    price = sum(f.cuota / (1 + y) ** i for i, f in enumerate(flujos, 1))
+    precio = sum(f.cuota / (1 + y) ** i for i, f in enumerate(flujos, 1))
     pv_tiempo = sum(i * f.cuota / (1 + y) ** i for i, f in enumerate(flujos, 1))
-    duracion = pv_tiempo / price / p
+    duracion = pv_tiempo / precio / p
     dur_mod = duracion / (1 + y)
     convexidad = (
         sum(f.cuota * i * (i + 1) / (1 + y) ** (i + 2) for i, f in enumerate(flujos, 1))
-        / price
+        / precio
         / p**2
     )
     precio_maximo = sum(f.cuota for f in flujos)
@@ -136,4 +106,29 @@ async def valorar_bono(
     db.add(valoracion)
     await db.commit()
 
+    return ValoracionResponse(**valoracion.__dict__)
+
+
+async def obtener_valoracion_por_bono(
+    bono_id: int, db: AsyncSession
+) -> ValoracionResponse:
+    stmt = select(Bono).where(Bono.id == bono_id)
+    result = await db.execute(stmt)
+    bono = result.scalar()
+    if not bono:
+        raise HTTPException(status_code=404, detail="Bono no encontrado")
+    stmt = (
+        select(Valoracion)
+        .where(Valoracion.bono_id == bono_id)
+        .order_by(Valoracion.fecha_valoracion.desc())
+    )
+    result = await db.execute(stmt)
+    valoracion = result.scalar()
+    
+    if not valoracion:
+        raise HTTPException(
+            status_code=404, 
+            detail="No se encontró ninguna valoración para este bono"
+        )
+    
     return ValoracionResponse(**valoracion.__dict__)
